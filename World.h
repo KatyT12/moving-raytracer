@@ -88,4 +88,26 @@ class World{
             }
         }
 
+        void update()
+        {
+            for(int i = 0; i<worldObjects.size(); i++)
+            {
+                Object* obj = worldObjects[i];
+                if(obj->type == objectType::SPHERE)
+                {
+                    Sphere* s = (Sphere*)obj;
+                    s->moveByVel(0.2);
+
+
+                    float distance = s->getSphereCentre().vectorAdd(cam->getCameraPosition().getNegative()).getMagnitude();
+
+                    if(distance > 100.0f){
+                        delete obj;
+                        worldObjects.erase(worldObjects.begin() + i);
+                    }
+
+                }
+            }
+        }
+
 };

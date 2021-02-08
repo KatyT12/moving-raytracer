@@ -9,6 +9,9 @@ class Sphere : public Object{
     Vector centre;
     double radius;
     Color color;
+    Vector velocity = Vector(0,0,0);
+
+
 
     public:
         Sphere();
@@ -18,9 +21,17 @@ class Sphere : public Object{
             color = col;
             radius = 1.0; 
         }
+        
+        
+        inline void setVel(Vector vel){velocity = vel;}
+        inline Vector getVel(){return velocity;}
+        inline void moveByVel(float amount){centre = centre.vectorAdd(velocity.scalarMult(amount));}
+
+
         Vector getSphereCentre(){return centre;}
         double getSphereRadius(){return radius;}
         Color getColor(){return color;}
+
 
         Vector getNormalAt(Vector point)
         {
@@ -79,10 +90,12 @@ class Sphere : public Object{
 Sphere::Sphere()
 : centre(Vector(0,0,0)),radius(1.0), color(Color(1,0,0,1))
 {
+    type = objectType::SPHERE;
 }
 Sphere::Sphere(Vector p,double r, Color c)
 :centre(p),radius(r),color(c)
 {
+    type = objectType::SPHERE;
 }
 
 

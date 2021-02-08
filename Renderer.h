@@ -7,7 +7,7 @@
 class Renderer
 {
     public: 
-        World world;
+        World* world;
         int width;
         int height;
         double aspectRatio;
@@ -46,13 +46,13 @@ class Renderer
 
 
 
-    Renderer(World& world, const int width, const int height)
+    Renderer(World* world, const int width, const int height)
     :width(width), height(height), world(world), accuracy(0.000001)
     {
         aspectRatio = (double)width/(double)height;        
     }
     Renderer(){}
-    void setAll(World& world, const int width, const int height)
+    void setAll(World* world, const int width, const int height)
     {
         this->width = width;
         this->height = height;
@@ -82,7 +82,7 @@ class Renderer
 
                 getCentrePixels(xamnt,yamnt,x,y);             
             
-                Camera scene_cam = *world.cam;
+                Camera scene_cam = *world->cam;
 
                 Vector cameraRayOrigin = scene_cam.getCameraPosition();
                 /*Direction of camera rays throught the view plane*/
@@ -90,14 +90,14 @@ class Renderer
 
 
                 Ray cameraRay(cameraRayOrigin,cameraRayDirection);
-                std::vector<double> intersections = world.findIntersections(cameraRay);
+                std::vector<double> intersections = world->findIntersections(cameraRay);
 
                 int indexOfWinningObjects = winningObjectIndex(intersections);
 
 
                 if(indexOfWinningObjects == -1) //No intersection
                 {
-                    Color bg_col = world.getBackgroundColor();
+                    Color bg_col = world->getBackgroundColor();
                     pixels[thisone] = olc::PixelF(bg_col.getColorRed(),bg_col.getColorGreen(),bg_col.getColorBlue());
                 }
                 else{
@@ -106,7 +106,7 @@ class Renderer
                         Vector intersectionPos  = cameraRayOrigin.vectorAdd(cameraRayDirection.scalarMult(this_intersection)); 
                         Vector intersectionDir = cameraRayDirection;
 
-                        Color intersectionCol = getColorAt(intersectionPos,intersectionDir,world.worldObjects,indexOfWinningObjects,world.worldLights,accuracy,world.getAmbientLight());
+                        Color intersectionCol = getColorAt(intersectionPos,intersectionDir,world->worldObjects,indexOfWinningObjects,world->worldLights,accuracy,world->getAmbientLight());
                         pixels[thisone] = olc::PixelF(intersectionCol.getColorRed(),intersectionCol.getColorGreen(),intersectionCol.getColorBlue());
                     } 
                     

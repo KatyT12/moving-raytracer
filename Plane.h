@@ -53,8 +53,10 @@ class Plane : public Object{
 Plane::Plane()
 : normal(Vector(1,0,0)),distanceFromOrigin(0.0), color(Color(1,0,0,1))
 {
+    type = objectType::PLANE;
 }
 Plane::Plane(Vector n,double d, Color c)
 :normal(n),distanceFromOrigin(d),color(c)
 {
+    type = objectType::PLANE;
 }

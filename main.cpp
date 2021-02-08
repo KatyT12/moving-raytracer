@@ -64,7 +64,7 @@ public:
         world.add(scene_plane);
 
 
-        renderer.setAll(world,width,height);
+        renderer.setAll(&world,width,height);
  
 		// Called once at the start, so create things here
         buffer = renderer.render();
@@ -80,6 +80,9 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
+        Clear(olc::WHITE);
+        world.update();
+        reDraw();
 		// called once per frame
         for(int x = 0; x < ScreenWidth();x++)
         {
@@ -93,42 +96,60 @@ public:
 		return true;
 	}
 
+    Vector getPointingDirection(){
+        olc::vi2d mousePos;
+        mousePos.x = GetMouseX();
+        mousePos.y = ScreenHeight() - GetMouseY();
+        double xamnt;
+        double yamnt;
+        renderer.getCentrePixels(xamnt,yamnt,mousePos.x,mousePos.y);
+        Vector cameraRayDirection = scene_cam.getCameraDirection().vectorAdd(scene_cam.getCameraRight().scalarMult(xamnt - 0.5).vectorAdd(scene_cam.getCameraDown().scalarMult(yamnt - 0.5))).getNormalized();
+        return cameraRayDirection;
+    }
 
     void checkKeys()
     {
-        if(GetKey(olc::D).bPressed)
+        if(GetKey(olc::D).bHeld)
         {
             scene_cam.moveRight(0.2);
-            reDraw();
         }
-        if(GetKey(olc::A).bPressed)
+        if(GetKey(olc::A).bHeld)
         {
             scene_cam.moveLeft(0.2);
-            reDraw();
         }
         
         
-        if(GetKey(olc::W).bPressed)
+        if(GetKey(olc::W).bHeld)
         {
             scene_cam.moveForward(0.2);
-            reDraw();
         }
-        if(GetKey(olc::S).bPressed)
+        if(GetKey(olc::S).bHeld)
         {
             scene_cam.moveBack(0.2);
-            reDraw();
         }
 
-        if(GetKey(olc::SPACE).bPressed)
+        if(GetKey(olc::SPACE).bHeld)
         {
             scene_cam.moveUp(0.2);
-            reDraw();
         }
-        if(GetKey(olc::RETURN).bPressed)
+        if(GetKey(olc::RETURN).bHeld)
         {
             scene_cam.moveDown(0.2);
-            reDraw();
         }
+        
+        if(GetKey(olc::ESCAPE).bPressed)
+        {
+            quick_exit(0);
+        }
+        
+        if(GetKey(olc::Q).bPressed)
+        {
+            Sphere* s = new Sphere(scene_cam.getCameraPosition(),0.5,Color(1,0,0,1));
+
+            s->setVel(getPointingDirection().getNormalized());
+            world.add(*s);
+        }
+
 
         if(GetMouse(0).bPressed)
         {
@@ -137,17 +158,14 @@ public:
             mousePos.x = GetMouseX();
             mousePos.y = ScreenHeight() - GetMouseY();
             
-            double xamnt;
-            double yamnt;
-            renderer.getCentrePixels(xamnt,yamnt,mousePos.x,mousePos.y);
-            Vector cameraRayDirection = scene_cam.getCameraDirection().vectorAdd(scene_cam.getCameraRight().scalarMult(xamnt - 0.5).vectorAdd(scene_cam.getCameraDown().scalarMult(yamnt - 0.5))).getNormalized();
+            Vector cameraRayDirection = getPointingDirection();
             Ray ray(scene_cam.getCameraPosition(),cameraRayDirection);
             std::vector<double> intersections = world.findIntersections(ray);
             int index = renderer.winningObjectIndex(intersections);
             if(index < 0)
             {
+                scene_cam.lookAt(scene_cam.getCameraPosition(),scene_cam.getCameraPosition().vectorAdd(cameraRayDirection),world.getY());
 
-                return; 
             }
             else{
                 scene_cam.lookAt(scene_cam.getCameraPosition(),scene_cam.getCameraPosition().vectorAdd(cameraRayDirection.scalarMult(intersections[index])),world.getY());
@@ -166,7 +184,7 @@ int main()
     std::cout << "Raytracing\n";
     
     Game demo;
-	if (demo.Construct(640, 480, 4, 4))
+	if (demo.Construct(200,200, 4, 4))
 		demo.Start();
     
     

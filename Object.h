@@ -4,10 +4,16 @@
 #include "Vector.h"
 #include "Color.h"
 
+enum objectType{
+    PLANE,
+    SPHERE
+};
+
 class Object{
-  
 
     public:
+        objectType type;
+
         Object();
 
         virtual Color getColor(){return Color(0.0,0.0,0.0,0.0);}
@@ -16,6 +22,7 @@ class Object{
         }
 
         virtual Vector getNormalAt(Vector point){return Vector(0,1,0);}
+   
 
 };
 
