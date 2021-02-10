@@ -110,4 +110,16 @@ class World{
             }
         }
 
+        ~World(){
+            for(Source* l : worldLights)
+            {
+                delete l;
+            }
+            for(Object* obj : worldObjects)
+            {
+                delete obj;
+            }
+
+        }
+
 };

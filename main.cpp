@@ -29,10 +29,6 @@ public:
     World world;
     Renderer renderer;
 
-    Sphere scene_sphere;
-    Plane scene_plane;
-    Light scene_light;
-
     bool OnUserCreate() override
 	{
         int dpi = 72;
@@ -54,14 +50,13 @@ public:
         Vector lightPosition(-7,10,-10);
 
         //Vector lightPosition(-4,7,10);
-        scene_light.setAll(lightPosition,whiteLight);
+        Light* scene_light = new Light(lightPosition,whiteLight);
         //Scene objects
-        scene_sphere.setAll(world.getO(),1,cool_green);//Sphere is at origin 
-        scene_plane.setAll(world.getY(),-1,maroon);//Directly beneath sphere
-
-        world.add(scene_light);
-        world.add(scene_sphere);
-        world.add(scene_plane);
+        Sphere* scene_sphere = new Sphere(world.getO(),1,cool_green);//Sphere is at origin 
+        Plane* scene_plane = new Plane(world.getY(),-1,maroon);//Directly beneath sphere
+        world.add(*scene_light);
+        world.add(*scene_sphere);
+        world.add(*scene_plane);
 
 
         renderer.setAll(&world,width,height);
