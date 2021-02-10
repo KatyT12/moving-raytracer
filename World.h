@@ -21,6 +21,7 @@ class World{
     public:
         std::vector<Object*>worldObjects;
         std::vector<Source*>worldLights;
+        std::vector<Plane*> planes;
         Camera *cam;
 
         World()
@@ -85,6 +86,9 @@ class World{
             }
             else{
                 worldObjects.push_back(dynamic_cast<Object*>(&obj));
+                if(worldObjects[worldObjects.size() - 1]->type == PLANE){
+                    planes.push_back((Plane*)&obj);
+                }
             }
         }
 
@@ -97,17 +101,15 @@ class World{
                 {
                     Sphere* s = (Sphere*)obj;
                     s->moveByVel(0.2);
-
-
                     float distance = s->getSphereCentre().vectorAdd(cam->getCameraPosition().getNegative()).getMagnitude();
 
-                    if(distance > 100.0f){
-                        delete obj;
-                        worldObjects.erase(worldObjects.begin() + i);
+                    for(Plane* p : planes)
+                    {
+                        s->checkCollidWithPlane(p);
                     }
-
                 }
             }
+            
         }
 
         ~World(){

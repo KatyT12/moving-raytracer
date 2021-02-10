@@ -3,6 +3,7 @@
 #include "Vector.h"
 #include "Color.h"
 #include "Object.h"
+#include "Plane.h"
 
 
 class Sphere : public Object{
@@ -82,6 +83,18 @@ class Sphere : public Object{
             }
         }
 
+        void checkCollidWithPlane(Plane* p){
+            float distance = p->findClosest(centre);
+            if(distance - radius < 0)
+            {
+                setVel(velocity.getRelectionWith(p->getNormalAt(centre)));
+            }
+
+            //float a = p->getNormalAt(centre).getDotProductWith(centre.vectorAdd(p->getNormalAt(centre).getNegative()));
+            //Vector v = p->getNormalAt(2).getNegative().scalarMult(a);
+
+            
+        }
 
 
 };

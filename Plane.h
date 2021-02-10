@@ -30,7 +30,7 @@ class Plane : public Object{
         double findIntersection(Ray ray){
             Vector ray_direction = ray.getRayDirection();
             double a = ray_direction.getDotProductWith(normal);
-
+ 
             if(a == 0)
             {
                 //If ray is paralel to the plane
@@ -44,6 +44,11 @@ class Plane : public Object{
                 return -1 * b/a;
             }
 
+        }
+
+        double findClosest(Vector o){
+            double b = normal.getDotProductWith(o.vectorAdd(normal.scalarMult(distanceFromOrigin).getNegative()));
+            return b;
         }
 
 
