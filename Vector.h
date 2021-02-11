@@ -1,5 +1,6 @@
 #pragma once
 #include "math.h"
+#define GRAVITY -9.8f
 
 class Vector{
     double x,y,z;
@@ -11,6 +12,10 @@ class Vector{
         double getVectorX(){return x;}
         double getVectorY(){return y;}
         double getVectorZ(){return z;}
+
+        void setVectorX(float a){x=a;}
+        void setVectorY(float a){y=a;}
+        void setVectorZ(float a){z=a;}
 
         double getMagnitude(){
             return sqrt((x*x) + (y*y) + (z*z));

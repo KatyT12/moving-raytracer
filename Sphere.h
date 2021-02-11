@@ -5,14 +5,17 @@
 #include "Object.h"
 #include "Plane.h"
 
+#define COLLISION_OFFSET 0.12
 
 class Sphere : public Object{
     Vector centre;
     double radius;
     Color color;
+
     Vector velocity = Vector(0,0,0);
+    Vector acceleration = Vector(0,GRAVITY,0);
 
-
+    bool onPlane = false;
 
     public:
         Sphere();
@@ -28,6 +31,11 @@ class Sphere : public Object{
         inline Vector getVel(){return velocity;}
         inline void moveByVel(float amount){centre = centre.vectorAdd(velocity.scalarMult(amount));}
 
+        inline void setAcceleration(Vector a){acceleration = a;}
+        inline Vector getAcceleration(){return acceleration;}
+        inline void updateVelocity(float time){
+            velocity = velocity.vectorAdd(acceleration.scalarMult(time));
+        }
 
         Vector getSphereCentre(){return centre;}
         double getSphereRadius(){return radius;}
@@ -85,15 +93,30 @@ class Sphere : public Object{
 
         void checkCollidWithPlane(Plane* p){
             float distance = p->findClosest(centre);
-            if(distance - radius < 0)
+            if(!onPlane)
             {
-                setVel(velocity.getRelectionWith(p->getNormalAt(centre)));
+                if(distance - (radius+COLLISION_OFFSET) < 0)
+                {
+                    acceleration.setVectorY(acceleration.getVectorY() + 9.8f);
+
+
+                    if(velocity.getMagnitude() > 0)
+                    {
+                        velocity.setVectorY(velocity.getVectorY() * -1);
+                        //setVel(velocity.getRelectionWith(p->getNormalAt(centre)).scalarMult(0.3));
+
+                    }
+
+                    onPlane = true;
+                }
             }
-
-            //float a = p->getNormalAt(centre).getDotProductWith(centre.vectorAdd(p->getNormalAt(centre).getNegative()));
-            //Vector v = p->getNormalAt(2).getNegative().scalarMult(a);
-
-            
+            else{
+                if(distance - (radius+COLLISION_OFFSET) >= 0)
+                {
+                    onPlane = false;
+                    acceleration.setVectorY(acceleration.getVectorY() - 9.8f);
+                }
+            }        
         }
 
 

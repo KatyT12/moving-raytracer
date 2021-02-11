@@ -7,6 +7,8 @@
 #include "Source.h"
 #include <vector>
 #include "Camera.h"
+#include "Sphere.h"
+
 
 class World{
     private:
@@ -18,6 +20,7 @@ class World{
         Color backgroundColor;
         double ambientLight;
 
+        clock_t time1, time2;
     public:
         std::vector<Object*>worldObjects;
         std::vector<Source*>worldLights;
@@ -26,7 +29,9 @@ class World{
 
         World()
         :O(Vector(0,0,0)), X(Vector(1,0,0)), Y(Vector(0,1,0)), Z(Vector(0,0,1)), backgroundColor(Color(0,0,0,0))
-        {}
+        {
+            time1 = clock();
+        }
 
         World(Vector origin, Vector Xaxis, Vector Yaxis, Vector Zaxis, Color color)
         :O(origin), X(Xaxis), Y(Yaxis), Z(Zaxis), backgroundColor(color)
@@ -94,6 +99,7 @@ class World{
 
         void update()
         {
+            time2 = clock();
             for(int i = 0; i<worldObjects.size(); i++)
             {
                 Object* obj = worldObjects[i];
@@ -107,8 +113,11 @@ class World{
                     {
                         s->checkCollidWithPlane(p);
                     }
+                    s->updateVelocity((((float)time2 - (float)time1)/CLOCKS_PER_SEC) * 0.4);
+                    
                 }
             }
+            time1 = time2;
             
         }
 

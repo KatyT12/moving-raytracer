@@ -28,6 +28,8 @@ public:
     int height;
     World world;
     Renderer renderer;
+    olc::vi2d lastMouse;
+
 
     bool OnUserCreate() override
 	{
@@ -35,6 +37,8 @@ public:
         width = ScreenWidth();
         height = ScreenHeight();
         double aspectRatio = (double)width / (double) height;
+
+        lastMouse = GetMousePos();
 
         world.setAmbientLight(0.2);
         Vector CameraPosition(3,1.5,-4);
@@ -99,7 +103,7 @@ public:
         double yamnt;
         renderer.getCentrePixels(xamnt,yamnt,mousePos.x,mousePos.y);
         Vector cameraRayDirection = scene_cam.getCameraDirection().vectorAdd(scene_cam.getCameraRight().scalarMult(xamnt - 0.5).vectorAdd(scene_cam.getCameraDown().scalarMult(yamnt - 0.5))).getNormalized();
-        return cameraRayDirection;
+        return cameraRayDirection.getNormalized();
     }
 
     void checkKeys()
@@ -141,31 +145,22 @@ public:
         {
             Sphere* s = new Sphere(scene_cam.getCameraPosition(),0.5,Color(1,0,0,1));
 
-            s->setVel(getPointingDirection().getNormalized());
+            s->setVel(getPointingDirection().scalarMult(7));
             world.add(*s);
         }
 
 
-        if(GetMouse(0).bPressed)
+        if(GetMouse(0).bHeld)
         {
 
             olc::vi2d mousePos;
             mousePos.x = GetMouseX();
             mousePos.y = ScreenHeight() - GetMouseY();
-            
+
             Vector cameraRayDirection = getPointingDirection();
             Ray ray(scene_cam.getCameraPosition(),cameraRayDirection);
-            std::vector<double> intersections = world.findIntersections(ray);
-            int index = renderer.winningObjectIndex(intersections);
-            if(index < 0)
-            {
-                scene_cam.lookAt(scene_cam.getCameraPosition(),scene_cam.getCameraPosition().vectorAdd(cameraRayDirection),world.getY());
-
-            }
-            else{
-                scene_cam.lookAt(scene_cam.getCameraPosition(),scene_cam.getCameraPosition().vectorAdd(cameraRayDirection.scalarMult(intersections[index])),world.getY());
-            }
-
+            scene_cam.lookAt(scene_cam.getCameraPosition(),scene_cam.getCameraPosition().vectorAdd(cameraRayDirection),world.getY());
+            
             reDraw();
 
         }
@@ -177,11 +172,12 @@ public:
 int main()
 {
     std::cout << "Raytracing\n";
-    
+
     Game demo;
 	if (demo.Construct(200,200, 4, 4))
 		demo.Start();
-    
+
+ 
     
     return 0;
 }
