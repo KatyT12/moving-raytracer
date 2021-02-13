@@ -17,6 +17,8 @@ class Sphere : public Object{
 
     bool onPlane = false;
 
+    float weight = 1;
+
     public:
         Sphere();
         Sphere(Vector,double,Color);
@@ -36,6 +38,9 @@ class Sphere : public Object{
         inline void updateVelocity(float time){
             velocity = velocity.vectorAdd(acceleration.scalarMult(time));
         }
+
+        inline float getWeight(){return weight;}
+        inline void setWeight(float w){weight = w;}
 
         Vector getSphereCentre(){return centre;}
         double getSphereRadius(){return radius;}
@@ -99,10 +104,9 @@ class Sphere : public Object{
                 {
                     acceleration.setVectorY(acceleration.getVectorY() + 9.8f);
 
-
                     if(velocity.getMagnitude() > 0)
                     {
-                        velocity.setVectorY(velocity.getVectorY() * -1);
+                        velocity.setVectorY(velocity.getVectorY() * -0.7);
                         //setVel(velocity.getRelectionWith(p->getNormalAt(centre)).scalarMult(0.3));
 
                     }
@@ -119,7 +123,18 @@ class Sphere : public Object{
             }        
         }
 
-
+    void checkCollisionWithSphere(Sphere* s){
+        Vector vectorTo = s->centre.vectorAdd(centre.getNegative());
+        float distance = vectorTo.getMagnitude();
+        
+        if(distance - radius - COLLISION_OFFSET - s->radius < 0)
+        {
+            if(velocity.getDotProductWith(vectorTo) > 0)
+            {
+                velocity = velocity.getNegative().scalarMult(0.6);
+            }
+        }
+    }
 };
 
 

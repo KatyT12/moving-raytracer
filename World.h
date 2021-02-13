@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "Sphere.h"
 
+#define CUT_DISTANCE 150
 
 class World{
     private:
@@ -25,6 +26,8 @@ class World{
         std::vector<Object*>worldObjects;
         std::vector<Source*>worldLights;
         std::vector<Plane*> planes;
+        std::vector<Sphere*> spheres;
+
         Camera *cam;
 
         World()
@@ -43,6 +46,13 @@ class World{
             for(int i = 0; i < worldObjects.size(); i++)
             {
                 intersections.push_back(worldObjects[i]->findIntersection(cameraRay));
+                if(worldObjects[i]->type == SPHERE)
+                {
+                    if(cameraRay.getRayDirection().getDotProductWith(((Sphere*)worldObjects[i])->getSphereCentre().vectorAdd(cam->getCameraPosition().getNegative()).getNormalized()) < 0)
+                    {
+                        continue;
+                    }
+                }
             }
             return intersections;
         }
@@ -94,6 +104,11 @@ class World{
                 if(worldObjects[worldObjects.size() - 1]->type == PLANE){
                     planes.push_back((Plane*)&obj);
                 }
+                else if(worldObjects[worldObjects.size() - 1]->type == SPHERE)
+                {
+                    spheres.push_back((Sphere*)&obj);
+                }
+
             }
         }
 
@@ -109,11 +124,35 @@ class World{
                     s->moveByVel(0.2);
                     float distance = s->getSphereCentre().vectorAdd(cam->getCameraPosition().getNegative()).getMagnitude();
 
+                    int sp;
+                    int j = 0;
+                    for(Sphere* sphere: spheres)
+                    {
+                        if(s != sphere)
+                        {
+                            s->checkCollisionWithSphere(sphere);
+                        }
+                        else{
+                            sp = j;
+                        }
+                        j++;
+
+                      
+                    }
                     for(Plane* p : planes)
                     {
                         s->checkCollidWithPlane(p);
                     }
+                   
                     s->updateVelocity((((float)time2 - (float)time1)/CLOCKS_PER_SEC) * 0.4);
+
+                    if(distance > CUT_DISTANCE)
+                    {
+                        delete[] spheres[sp];
+                        worldObjects.erase(worldObjects.begin() + i);                       
+                        spheres.erase(spheres.begin() + sp);
+                    }
+
                     
                 }
             }

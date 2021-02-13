@@ -9,6 +9,7 @@
 #include "World.h"
 #include "Source.h"
 #include "Renderer.h"
+#include "Matrix.h"
 #define OLC_PGE_APPLICATION
 
 #include "olcPixelGameEngine.h"
@@ -150,7 +151,7 @@ public:
         }
 
 
-        if(GetMouse(0).bHeld)
+        if(GetMouse(0).bPressed)
         {
 
             olc::vi2d mousePos;
@@ -172,6 +173,11 @@ public:
 int main()
 {
     std::cout << "Raytracing\n";
+
+    Matrix m;
+    m.translate(Vector(1,4,5));
+    Vector v = m.multiplyVector(Vector(0,1,4));
+    std::cout << v.getVectorX() << " " << v.getVectorY() << " " << v.getVectorZ() << "\n";
 
     Game demo;
 	if (demo.Construct(200,200, 4, 4))

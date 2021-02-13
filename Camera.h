@@ -21,6 +21,7 @@ class Camera{
             cameraPosition = pos;
             Vector diff_btw(pos.getVectorX() - lookAt.getVectorX(),pos.getVectorY() - lookAt.getVectorY(),pos.getVectorZ() - lookAt.getVectorZ());
 
+            
             cameraDirection = diff_btw.getNegative().getNormalized();
             cameraRight = up.getCrossProductWith(cameraDirection).getNormalized();
             cameraDown = cameraRight.getCrossProductWith(cameraDirection).getNormalized();
@@ -54,11 +55,11 @@ class Camera{
         }
         void moveBack(float amount)
         {
-            cameraPosition = cameraPosition.vectorAdd(lookAtPos.vectorAdd(cameraPosition.getNegative()).getNormalized().scalarMult(amount * -1));
+            cameraPosition = cameraPosition.vectorAdd(cameraDirection.scalarMult(amount * -1.0f));
         }
         void moveForward(float amount)
         {
-            cameraPosition = cameraPosition.vectorAdd(lookAtPos.vectorAdd(cameraPosition.getNegative()).getNormalized().scalarMult(amount));
+            cameraPosition = cameraPosition.vectorAdd(cameraDirection.scalarMult(amount));
         }
 
       
