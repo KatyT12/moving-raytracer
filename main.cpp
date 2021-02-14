@@ -9,7 +9,6 @@
 #include "World.h"
 #include "Source.h"
 #include "Renderer.h"
-#include "Matrix.h"
 #define OLC_PGE_APPLICATION
 
 #include "olcPixelGameEngine.h"
@@ -92,6 +91,7 @@ public:
             }
         }
 
+	delete buffer;
         checkKeys();
 		return true;
 	}
@@ -161,8 +161,6 @@ public:
             Vector cameraRayDirection = getPointingDirection();
             Ray ray(scene_cam.getCameraPosition(),cameraRayDirection);
             scene_cam.lookAt(scene_cam.getCameraPosition(),scene_cam.getCameraPosition().vectorAdd(cameraRayDirection),world.getY());
-            
-            reDraw();
 
         }
     }
@@ -173,11 +171,6 @@ public:
 int main()
 {
     std::cout << "Raytracing\n";
-
-    Matrix m;
-    m.translate(Vector(1,4,5));
-    Vector v = m.multiplyVector(Vector(0,1,4));
-    std::cout << v.getVectorX() << " " << v.getVectorY() << " " << v.getVectorZ() << "\n";
 
     Game demo;
 	if (demo.Construct(200,200, 4, 4))
