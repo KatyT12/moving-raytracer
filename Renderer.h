@@ -1,87 +1,91 @@
 #pragma once
 
+#include <thread>
+#include <mutex>
+#include <ctime>
+
 #include "World.h"
 #include "olcPixelGameEngine.h"
 
+#define AMOUNT_OF_THREADS 4
 
 class Renderer
 {
-    public: 
-        World* world;
-        int width;
-        int height;
-        double aspectRatio;
-        double accuracy;
+public:
+    World* world;
+    int width;
+    int height;
+    double aspectRatio;
+    double accuracy;
 
-        Color getColorAt(Vector intersectionPos,Vector intersectionDir,std::vector<Object*> worldObjects,int indexOfWinningObjects,std::vector<Source*>worldLights,double accuracy,double ambientLight);
-        int winningObjectIndex(std::vector<double> intersections);
-    
-
-   
+    Color getColorAt(Vector intersectionPos, Vector intersectionDir, std::vector<Object*> worldObjects, int indexOfWinningObjects, std::vector<Source*>worldLights, double accuracy, double ambientLight);
+    int winningObjectIndex(std::vector<double> intersections);
 
 
-    void getCentrePixels(double &xamnt,double &yamnt,int x, int y)
+
+
+
+    void getCentrePixels(double& xamnt, double& yamnt, int x, int y)
     {
-          if(width > height)
-          {
-              //The image is wider than it is tall
-              xamnt = ((x + 0.5)/width) * aspectRatio - (((width - height)/ (double) height)/2);
-              yamnt = ((height - y) + 0.5)/height;
-          }
-          else if (height >  width)
-          {
-              //The image is taller than it is wide
-              xamnt = (x + 0.5)/width;
-              yamnt = (((height - y) + 0.5)/height)/aspectRatio - (((height - width)/ (double) width)/2);
-          }
-          else
-          {
-              
-              //The image is square
-              xamnt = (x + 0.5)/width;
-              yamnt = ((height-y) + 0.5)/height;
-          }
+        if (width > height)
+        {
+            //The image is wider than it is tall
+            xamnt = ((x + 0.5) / width) * aspectRatio - (((width - height) / (double)height) / 2);
+            yamnt = ((height - y) + 0.5) / height;
+        }
+        else if (height > width)
+        {
+            //The image is taller than it is wide
+            xamnt = (x + 0.5) / width;
+            yamnt = (((height - y) + 0.5) / height) / aspectRatio - (((height - width) / (double)width) / 2);
+        }
+        else
+        {
+
+            //The image is square
+            xamnt = (x + 0.5) / width;
+            yamnt = ((height - y) + 0.5) / height;
+        }
     }
 
 
 
 
     Renderer(World* world, const int width, const int height)
-    :width(width), height(height), world(world), accuracy(0.000001)
+        :width(width), height(height), world(world), accuracy(0.000001)
     {
-        aspectRatio = (double)width/(double)height;        
+        aspectRatio = (double)width / (double)height;
     }
-    Renderer(){}
+    Renderer() {}
     void setAll(World* world, const int width, const int height)
     {
         this->width = width;
         this->height = height;
         this->world = world;
-        this-> accuracy = 0.000001;
-        aspectRatio = (double)width/(double)height;
+        this->accuracy = 0.000001;
+        aspectRatio = (double)width / (double)height;
     }
-
     
-   
-    olc::Pixel* render()
+    
+    std::mutex canvasLock;
+    void render(int xStart, int xEnd, olc::Pixel* pixels)
     {
-        olc::Pixel* pixels = new olc::Pixel[width * height];
         double xamnt, yamnt;
 
-        for(int x =0; x < width; x++)
+        for (int x = xStart; x <= xEnd; x++)
         {
-            for(int y = 0; y < height;y++)
+            for (int y = 0; y < height; y++)
             {
 
-                
-                int thisone = y*width + x;
+
+                int thisone = y * width + x;
 
 
                 double xamnt;
                 double yamnt;
 
-                getCentrePixels(xamnt,yamnt,x,y);             
-            
+                getCentrePixels(xamnt, yamnt, x, y);
+
                 Camera scene_cam = *world->cam;
 
                 Vector cameraRayOrigin = scene_cam.getCameraPosition();
@@ -89,43 +93,129 @@ class Renderer
                 Vector cameraRayDirection = scene_cam.getCameraDirection().vectorAdd(scene_cam.getCameraRight().scalarMult(xamnt - 0.5).vectorAdd(scene_cam.getCameraDown().scalarMult(yamnt - 0.5))).getNormalized();
 
 
-                Ray cameraRay(cameraRayOrigin,cameraRayDirection);
+                Ray cameraRay(cameraRayOrigin, cameraRayDirection);
                 std::vector<double> intersections = world->findIntersections(cameraRay);
 
                 int indexOfWinningObjects = winningObjectIndex(intersections);
 
 
-                if(indexOfWinningObjects == -1) //No intersection
+                if (indexOfWinningObjects == -1) //No intersection
                 {
                     Color bg_col = world->getBackgroundColor();
-                    pixels[thisone] = olc::PixelF(bg_col.getColorRed(),bg_col.getColorGreen(),bg_col.getColorBlue());
+                    pixels[thisone] = olc::PixelF(bg_col.getColorRed(), bg_col.getColorGreen(), bg_col.getColorBlue());
                 }
-                else{
+                else {
                     double this_intersection = intersections[indexOfWinningObjects];
-                    if(this_intersection > accuracy){ //If intersecion is greater than accuracy
-                        Vector intersectionPos  = cameraRayOrigin.vectorAdd(cameraRayDirection.scalarMult(this_intersection)); 
+                    if (this_intersection > accuracy) { //If intersecion is greater than accuracy
+                        Vector intersectionPos = cameraRayOrigin.vectorAdd(cameraRayDirection.scalarMult(this_intersection));
                         Vector intersectionDir = cameraRayDirection;
 
-                        Color intersectionCol = getColorAt(intersectionPos,intersectionDir,world->worldObjects,indexOfWinningObjects,world->worldLights,accuracy,world->getAmbientLight());
-                        pixels[thisone] = olc::PixelF(intersectionCol.getColorRed(),intersectionCol.getColorGreen(),intersectionCol.getColorBlue());
-                    } 
-                    
-                    
-                    
-                    
-
+                        Color intersectionCol = getColorAt(intersectionPos, intersectionDir, world->worldObjects, indexOfWinningObjects, world->worldLights, accuracy, world->getAmbientLight());
+                        canvasLock.lock();
+                        pixels[thisone] = olc::PixelF(intersectionCol.getColorRed(), intersectionCol.getColorGreen(), intersectionCol.getColorBlue());
+                        canvasLock.unlock();
+                    }
                 }
             }
         }
 
+    }
+
+    /*
+    olc::Pixel* renderImage()
+    {
+        int startTime = clock();
+
+        olc::Pixel* pixels = new olc::Pixel[width * height];
+        double xamnt, yamnt;
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+
+
+                int thisone = y * width + x;
+
+
+                double xamnt;
+                double yamnt;
+
+                getCentrePixels(xamnt, yamnt, x, y);
+
+                Camera scene_cam = *world->cam;
+
+                Vector cameraRayOrigin = scene_cam.getCameraPosition();
+                //Direction of camera rays throught the view plane
+                Vector cameraRayDirection = scene_cam.getCameraDirection().vectorAdd(scene_cam.getCameraRight().scalarMult(xamnt - 0.5).vectorAdd(scene_cam.getCameraDown().scalarMult(yamnt - 0.5))).getNormalized();
+
+
+                Ray cameraRay(cameraRayOrigin, cameraRayDirection);
+                std::vector<double> intersections = world->findIntersections(cameraRay);
+
+                int indexOfWinningObjects = winningObjectIndex(intersections);
+
+
+                if (indexOfWinningObjects == -1) //No intersection
+                {
+                    Color bg_col = world->getBackgroundColor();
+                    pixels[thisone] = olc::PixelF(bg_col.getColorRed(), bg_col.getColorGreen(), bg_col.getColorBlue());
+                }
+                else {
+                    double this_intersection = intersections[indexOfWinningObjects];
+                    if (this_intersection > accuracy) { //If intersecion is greater than accuracy
+                        Vector intersectionPos = cameraRayOrigin.vectorAdd(cameraRayDirection.scalarMult(this_intersection));
+                        Vector intersectionDir = cameraRayDirection;
+
+                        Color intersectionCol = getColorAt(intersectionPos, intersectionDir, world->worldObjects, indexOfWinningObjects, world->worldLights, accuracy, world->getAmbientLight());
+                        pixels[thisone] = olc::PixelF(intersectionCol.getColorRed(), intersectionCol.getColorGreen(), intersectionCol.getColorBlue());
+                    }
+
+
+
+
+
+                }
+            }
+        }
+        int endTime = clock();
+        std::cout << "Execution Time : " << (endTime - startTime) / double(CLOCKS_PER_SEC) << "\n";
         return pixels;
     }
 
 
 
+};*/
+
+
+    olc::Pixel* renderImage() {
+        int startTime = clock();
+        olc::Pixel* pixels = new olc::Pixel[width * height];
+        std::vector<std::thread> threadVect;
+
+        int threads = AMOUNT_OF_THREADS;
+        int workPerThread = width  / threads;
+        int start = 0;
+        int end = start + workPerThread - 1;
+        for (int i = 0; i < threads; i++) {
+            threadVect.emplace_back(&Renderer::render,this,start, end, pixels);
+            start += workPerThread;
+            end += workPerThread;
+        }
+
+        for (int i = 0; i < threads; i++) {
+
+            threadVect[i].join();
+        }
+        int endTime = clock();
+        std::cout << "Execution Time : " << (endTime - startTime) / double(CLOCKS_PER_SEC) << "\n";
+
+
+        return pixels;
+    }
 };
-
-
+    
+    
 
 
  Color Renderer::getColorAt(Vector intersectionPos,Vector intersectionDir,std::vector<Object*> worldObjects,int indexOfWinningObjects,std::vector<Source*>worldLights,double accuracy,double ambientLight)

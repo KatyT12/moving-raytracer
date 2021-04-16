@@ -66,7 +66,7 @@ public:
         renderer.setAll(&world,width,height);
  
 		// Called once at the start, so create things here
-        buffer = renderer.render();
+        buffer = renderer.renderImage();
 
 		std::cout << ScreenWidth() << "\n";
 		return true;
@@ -74,7 +74,7 @@ public:
 
     void reDraw()
     {        
-        buffer = renderer.render();
+        buffer = renderer.renderImage();
     }
 
 	bool OnUserUpdate(float fElapsedTime) override
